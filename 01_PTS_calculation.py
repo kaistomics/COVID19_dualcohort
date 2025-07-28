@@ -153,7 +153,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Calculate geneset scores per cell type')
     parser.add_argument('--adata_file', type=str, required=True,
-                       help='Path to the h5ad file containing the AnnData object, ex) ./Example_data/Adata_example.h5ad')
+                       help='Path to the h5ad file containing the AnnData object, ex) ./Example_data/input_data/Adata_example.h5ad')
     parser.add_argument('--filename', type=str, required=True,
                        help='Path to the TSV file containing eGene data, ex)./Example_data/Immune_response_eGene.tsv')
     parser.add_argument('--n_process', type=int, required=True,
