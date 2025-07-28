@@ -161,35 +161,8 @@ def main():
     adata = sc.read_h5ad(adata_file)
     adata.raw.obs = adata.obs
 
-    celltypes_in_adata = ['B Memory',
-     'B Naive',
-     'CD14+ Monocyte',
-     'CD16+ Monocyte',
-     'CD4+ T Effector/Memory',
-     'CD4+ T Naive/CM',
-     'CD56bright NK',
-     'CD56dim NK',
-     'CD8+ T Effector/Memory',
-     'CD8+ T Naive/CM',
-     'Classical DC',
-     'Plasmacytoid DC',
-     'Proliferating Lymphocyte',
-     'gd T']
-
-    celltypes_in_significant_df = ['B_Memory',
-     'B_Naive',
-     'CD14+_Monocyte',
-     'CD16+_Monocyte',
-     'CD4+_T_Effector_Memory',
-     'CD4+_T_Naive_CM',
-     'CD56bright_NK',
-     'CD56dim_NK',
-     'CD8+_T_Effector_Memory',
-     'CD8+_T_Naive_CM',
-     'Classical_DC',
-     'Plasmacytoid_DC',
-     'Proliferating_Lymphocyte',
-     'gd_T']
+    celltypes_in_adata = ['B Memory', 'CD56bright NK', 'CD8+ T Effector/Memory']
+    celltypes_in_significant_df = ['B_Memory', 'CD56bright_NK', 'CD8+_T_Effector_Memory']
 
     def calculate_for_each_celltype(i):
         celltype_adata = celltypes_in_adata[i] # cell type name in adata
