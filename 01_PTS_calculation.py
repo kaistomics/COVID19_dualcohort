@@ -7,8 +7,12 @@ import argparse
 
 
 def _sparse_nanmean(X, axis):
+    """
+    np.nanmean equivalent for sparse matrices
+    """
     if not issparse(X):
         raise TypeError("X must be a sparse matrix")
+
     ### count the number of nan elements per row/column (dep. on axis)
     Z = X.copy()
     Z.data = np.isnan(Z.data)
@@ -151,11 +155,11 @@ def main():
     parser.add_argument('--adata_file', type=str, required=True,
                        help='Path to the h5ad file containing the AnnData object, ex) ./Example_data/Adata_example.h5ad')
     parser.add_argument('--filename', type=str, required=True,
-                       help='Path to the TSV file containing eGene data, ./Example_data/Immune_response_eGene.tsv')
+                       help='Path to the TSV file containing eGene data, ex)./Example_data/Immune_response_eGene.tsv')
     parser.add_argument('--n_process', type=int, required=True,
                        help='Number of processes to use for multiprocessing')
     parser.add_argument('--out_name', type=str, required=True,
-                       help='Output filename for the results CSV')
+                       help='Output filename for the results tsv ex) ./Example_data/Immune_response_PTS.tsv')
     parser.add_argument('--annotation_name', type=str, required=True,
                        help='Name of the annotation field in adata.obs, ex) Final_Annotation')
     args = parser.parse_args()
@@ -185,11 +189,10 @@ def main():
 
     cellscores_concat_df = pd.concat(cellscores, axis=0)
     cellscores_concat_df.columns = ['PTS', 'celltype']
-    cellscores_concat_df.to_csv(out_name)
+    cellscores_concat_df.to_csv(out_name, sep='\t')
     
     print(f"Results saved to {out_name}")
 
 
 if __name__ == "__main__":
     main()
-    
