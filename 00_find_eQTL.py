@@ -3,16 +3,17 @@
 import pandas as pd
 from statsmodels.stats.multitest import multipletests
 
-GWAS_summary = pd.read_csv('./Example_data/Immune_response_metaGWAS.tsv', sep='\t', )
+GWAS_summary = pd.read_csv('./Example_data/input_data/Immune_response_metaGWAS.tsv', sep='\t', )
 
 close_gene_per_SNP = pd.read_csv(
-    './Example_data/hg19_gene_TSS_gene_SNP_position.tsv', sep='\t',)
+    './Example_data/input_data/hg19_gene_TSS_gene_SNP_position.tsv', sep='\t',)
 
 celltype_list = ['B_Memory', 'CD8+_T_Effector_Memory']
 
+
 total_eQTL_result = []
 for celltype in celltype_list:        
-    tmp = pd.read_csv('./Example_data/eQTL_results/'+celltype+'_eQTL.tsv', sep='\t', )
+    tmp = pd.read_csv('./Example_data/input_data/'+celltype+'_eQTL.tsv', sep='\t', )
     tmp.columns = ['rs_id', 'gene_eQTL', 'beta_eQTL', 't-stat_eQTL', 'p-value_eQTL', 'FDR_eQTL']
     tmp['Cell_Type_eQTL'] = celltype
     
@@ -24,7 +25,7 @@ for celltype in celltype_list:
     total_eQTL_result.append(mytmp)
 total_eQTL_result_df = pd.concat(total_eQTL_result)    
 
-expression_ESF = pd.read_csv('./Example_data/Gene_expressing_samples_fraction.tsv', sep='\t')
+expression_ESF = pd.read_csv('./Example_data/input_data/Gene_expressing_samples_fraction.tsv', sep='\t')
 
 ESF = 0.5
 expression_ESF = expression_ESF.loc[expression_ESF['ESF']>=ESF].copy()
