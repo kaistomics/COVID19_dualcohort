@@ -9,7 +9,7 @@ subject = 'Noninfected_741'
 TRB_expansion_max = []
 for timepoint in [2, 4]:
 
-    div = pd.read_csv('./Example_data/TRB_expansion/'+
+    div = pd.read_csv('./Example_data/input_data/'+
                            '{}_T{}0_TRB.csv'.format(subject, timepoint))
     div['expansion'] = (div['0'].apply(lambda x: x if x <1e+8 else x/(1e+8)))
     div = div.loc[div['expansion'] != 0]
@@ -26,7 +26,7 @@ i = 0
 subject = 'Noninfected_741'
 IGH_expansion_max_df = []
 for timepoint in [2, 4]:
-    div = pd.read_csv('./Example_data/IGH_expansion/'+
+    div = pd.read_csv('./Example_data/input_data/'+
                            '{}_T{}0_IGH.csv'.format(subject, timepoint))
     div['expansion'] = (div['0'].apply(lambda x: x if x <1e+8 else x/(1e+8)))           
     IGH_expansion_max_df.append((subject, 'T{}'.format(timepoint),div['expansion'].max() ))
