@@ -7,12 +7,8 @@ import argparse
 
 
 def _sparse_nanmean(X, axis):
-    """
-    np.nanmean equivalent for sparse matrices
-    """
     if not issparse(X):
         raise TypeError("X must be a sparse matrix")
-
     ### count the number of nan elements per row/column (dep. on axis)
     Z = X.copy()
     Z.data = np.isnan(Z.data)
@@ -31,7 +27,6 @@ def _sparse_nanmean(X, axis):
     return m
 
 
-
 def geneset_score_per_celltype(adata,
                         annotation_field_name, 
                         celltype,
@@ -41,7 +36,7 @@ def geneset_score_per_celltype(adata,
                         n_bins = 25,
                         score_name = 'score',
                         random_state = 0,
-                        use_raw
+                        use_raw = True
                     ):
    
     use_raw = sc._utils._check_use_raw(adata, use_raw)
@@ -76,14 +71,12 @@ def geneset_score_per_celltype(adata,
     ### interval of expression.
     _adata = adata.raw if use_raw else adata
 
-
     celltype_indices = _adata.obs.loc[_adata.obs[annotation_field_name] == celltype].index
 
     _adata_subset = (
         _adata[celltype_indices, gene_pool] if len(gene_pool) < len(_adata.var_names) else _adata
     )
     
-#    print('calculate average value of genes')
     if issparse(_adata_subset.X):
         obs_avg = pd.Series(                                          ### gene mean expression, all cells. 
             np.array(_sparse_nanmean(_adata_subset.X, axis=0)).flatten(),
@@ -98,7 +91,6 @@ def geneset_score_per_celltype(adata,
         np.isfinite(obs_avg)
     ]  ### Sometimes (and I don't know how) missing data may be there, with nansfor
     
-#    print('start control gene selection')
     n_items = int(np.round(len(obs_avg) / (n_bins - 1)))            ### number of gene rank groups. 
     obs_cut = obs_avg.rank(method='min') // n_items               ###  유전자들의 rank를 n_items로 나눈 몫. 즉, 유전자의 계급값. 
     control_genes = set()
@@ -113,11 +105,7 @@ def geneset_score_per_celltype(adata,
     # To index, we need a list – indexing implies an order.
     control_genes = list(control_genes - gene_list)
     gene_list = list(gene_list)
-#    print('finished selecting control genes')    
     
-#    print('calculate subtraction')
-    
-
     X_list = _adata[celltype_indices, gene_list].X
     if issparse(X_list):
         X_list = np.array(_sparse_nanmean(X_list, axis=1)).flatten()         #관심있는 유전자의 total cell expression. 각 세포 별로 계산.           
@@ -137,7 +125,28 @@ def geneset_score_per_celltype(adata,
     return output_df
 
 
+# Global variables to be accessed by the worker function
+adata_global = None
+eGene_df_global = None
+annotation_name_global = None
+celltypes_in_adata_global = None
+celltypes_in_significant_df_global = None
+
+
+def calculate_for_each_celltype(i):
+    """Worker function for multiprocessing - now defined at module level"""
+    celltype_adata = celltypes_in_adata_global[i] # cell type name in adata
+    celltype_sig = celltypes_in_significant_df_global[i] # cell type name in eGene df
+    celltype_posi_gene = list(eGene_df_global.loc[eGene_df_global['CellType'] == celltype_sig]['gene'])
+    celltype_score = geneset_score_per_celltype(adata_global, annotation_name_global, celltype_adata, 
+                                    gene_list=celltype_posi_gene, use_raw=True)
+    return celltype_score
+
+
 def main():
+    global adata_global, eGene_df_global, annotation_name_global
+    global celltypes_in_adata_global, celltypes_in_significant_df_global
+    
     parser = argparse.ArgumentParser(description='Calculate geneset scores per cell type')
     parser.add_argument('--adata_file', type=str, required=True,
                        help='Path to the h5ad file containing the AnnData object, ex) ./Example_data/Adata_example.h5ad')
@@ -161,18 +170,16 @@ def main():
     adata = sc.read_h5ad(adata_file)
     adata.raw.obs = adata.obs
 
-    celltypes_in_adata = ['B Memory', 'CD56bright NK', 'CD8+ T Effector/Memory']
-    celltypes_in_significant_df = ['B_Memory', 'CD56bright_NK', 'CD8+_T_Effector_Memory']
+    celltypes_in_adata = ['B Memory',  'CD8+ T Effector/Memory']
+    celltypes_in_significant_df = ['B_Memory', 'CD8+_T_Effector_Memory']
 
-    def calculate_for_each_celltype(i):
-        celltype_adata = celltypes_in_adata[i] # cell type name in adata
-        celltype_sig = celltypes_in_significant_df[i] # cell type namd in eGene df
-        celltype_posi_gene = list(eGene_df.loc[eGene_df['CellType'] == celltype_sig]['gene'])
-        celltype_score = geneset_score_per_celltype(adata, annotation_name, celltype_adata, gene_list=celltype_posi_gene, 
-                                        use_raw=True)
-        return celltype_score
+    # Set global variables
+    adata_global = adata
+    eGene_df_global = pd.read_csv(filename, sep='\t')
+    annotation_name_global = annotation_name
+    celltypes_in_adata_global = celltypes_in_adata
+    celltypes_in_significant_df_global = celltypes_in_significant_df
 
-    eGene_df = pd.read_csv(filename, sep='\t')
     with multiprocessing.Pool(n_process) as pool:
         cellscores = pool.map(calculate_for_each_celltype, range(len(celltypes_in_adata)))
 
@@ -185,5 +192,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
     
