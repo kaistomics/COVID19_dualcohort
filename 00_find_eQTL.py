@@ -8,7 +8,7 @@ GWAS_summary = pd.read_csv('./Example_data/Immune_response_metaGWAS.tsv', sep='\
 close_gene_per_SNP = pd.read_csv(
     './Example_data/hg19_gene_TSS_gene_SNP_position.tsv', sep='\t',)
 
-celltype_list = ['B_Memory', 'CD56bright_NK', 'CD8+_T_Effector_Memory']
+celltype_list = ['B_Memory', 'CD8+_T_Effector_Memory']
 
 total_eQTL_result = []
 for celltype in celltype_list:        
